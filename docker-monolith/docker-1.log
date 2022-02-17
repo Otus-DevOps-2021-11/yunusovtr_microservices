@@ -1,0 +1,7 @@
+REPOSITORY                  TAG       IMAGE ID       CREATED          SIZE
+yunusovtr/ubuntu-tmp-file   latest    f59b3705b2e7   45 seconds ago   63.2MB
+ubuntu                      18.04     dcf4d4bef137   12 days ago      63.2MB
+hello-world                 latest    feb5d9fea6a5   4 months ago     13.3kB
+
+Чем отличается образ от контейнера на основании вывода команд docker inspect?
+Выводы в чём-то схожи. У контейнера данных больше и выглядят как данные образа дополненные данными конкретного окружения, описаниями драйверов и интерфейсов.
