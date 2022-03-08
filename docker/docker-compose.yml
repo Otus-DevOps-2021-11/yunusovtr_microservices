@@ -57,6 +57,19 @@ services:
     networks:
       - back-net
 
+  mongodb-exporter:
+    image: percona/mongodb_exporter:0.30
+    command:
+      - '--mongodb.uri=mongodb://post_db:27017'
+    networks:
+      - back-net
+
+  blackbox:
+    image: prom/blackbox-exporter-linux-amd64:latest
+    networks:
+      - front-net
+      - back-net
+
 volumes:
   post_db:
   prometheus_data:
