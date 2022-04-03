@@ -29,9 +29,9 @@ services:
       - 9200
     ports:
       - "9200:9200"
-    cpus: 1
-    mem_limit: 4 g
-    memswap_limit: 8 g
+    #cpus: 1
+    #mem_limit: 4 g
+    #memswap_limit: 8 g
     networks:
       - back-net
 
