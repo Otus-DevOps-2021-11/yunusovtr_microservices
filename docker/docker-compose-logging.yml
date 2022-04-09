@@ -1,0 +1,47 @@
+version: '3'
+services:
+
+  zipkin:
+    image: openzipkin/zipkin:2.21.0
+    ports:
+      - "9411:9411"
+    networks:
+      - back-net
+      - front-net
+
+  fluentd:
+    image: ${USERNAME}/fluentd
+    ports:
+      - "24224:24224"
+      - "24224:24224/udp"
+    networks:
+      - back-net
+
+  elasticsearch:
+    image: mrgreyves/elasticsearch:7.13.1
+    environment:
+      - ELASTIC_CLUSTER=false
+      - CLUSTER_NODE_MASTER=true
+      - CLUSTER_MASTER_NODE_NAME=es01
+      - discovery.type=single-node
+      - xpack.ml.enabled=false
+    expose:
+      - 9200
+    ports:
+      - "9200:9200"
+    #cpus: 1
+    #mem_limit: 4 g
+    #memswap_limit: 8 g
+    networks:
+      - back-net
+
+  kibana:
+    image: mrgreyves/kibana:7.13.1
+    ports:
+      - "5601:5601"
+    networks:
+      - back-net
+
+networks:
+  back-net:
+  front_net:
