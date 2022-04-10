@@ -1,18 +1,34 @@
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: comment-deployment
+  name: mongo
+  labels:
+    app: reddit
+    component: mongo
+    comment-db: "true"
+    post-db: "true"
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: comment
+      app: reddit
+      component: mongo
   template:
     metadata:
-      name: comment
+      name: mongo
       labels:
-        app: comment
+        app: reddit
+        component: mongo
+        comment-db: "true"
+        post-db: "true"
     spec:
       containers:
-      - image: chromko/comment
-        name: comment
+      - image: mongo:3.2
+        name: mongo
+        volumeMounts:
+        - name: mongo-persistent-storage
+          mountPath: /data/db
+      volumes:
+      - name: mongo-persistent-storage
+        emptyDir: {}
