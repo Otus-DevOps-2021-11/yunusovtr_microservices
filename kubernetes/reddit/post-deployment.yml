@@ -23,5 +23,5 @@ spec: # Блок спецификации деплоя
       - image: yunusovtr/post:latest
         name: post
         env:
-        - name: COMMENT_DATABASE_HOST
+        - name: POST_DATABASE_HOST
           value: comment-db
