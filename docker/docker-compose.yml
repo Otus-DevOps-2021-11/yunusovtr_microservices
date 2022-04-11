@@ -64,6 +64,8 @@ services:
     networks:
       - front-net
       - back-net
+    environment:
+      - ZIPKIN_ENABLED=${ZIPKIN_ENABLED}
 
   node-exporter:
     image: prom/node-exporter:v0.15.2
@@ -78,6 +80,8 @@ services:
       - '--collector.filesystem.ignored-mount-points="^/(sys|proc|dev|host|etc)($$|/)"'
     networks:
       - back-net
+    environment:
+      - ZIPKIN_ENABLED=${ZIPKIN_ENABLED}
 
   mongodb-exporter:
     image: percona/mongodb_exporter:0.30
@@ -85,12 +89,16 @@ services:
       - '--mongodb.uri=mongodb://post_db:27017'
     networks:
       - back-net
+    environment:
+      - ZIPKIN_ENABLED=${ZIPKIN_ENABLED}
 
   blackbox:
     image: prom/blackbox-exporter-linux-amd64:latest
     networks:
       - front-net
       - back-net
+    environment:
+      - ZIPKIN_ENABLED=${ZIPKIN_ENABLED}
 
 volumes:
   post_db:

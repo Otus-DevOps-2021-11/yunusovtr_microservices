@@ -1,0 +1,21 @@
+[cluster]
+%{ for index,ip_addr in node_external_ips ~}
+node${index} ansible_host=${ip_addr}
+%{ endfor ~}
+
+%{ for index,ip_addr in node_local_ips ~}
+node${index} local_ip=${ip_addr}
+%{ endfor ~}
+
+[master]
+node0
+
+[slaves]
+%{ for index,ip_addr in node_local_ips ~}
+%{ if index > 0 }node${index}
+%{ endif ~}
+%{ endfor ~}
+
+[all:vars]
+subnet_cidr=${cidr}
+ansible_user=ubuntu

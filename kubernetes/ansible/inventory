@@ -1,0 +1,16 @@
+[cluster]
+node0 ansible_host=51.250.70.54
+node1 ansible_host=51.250.77.142
+
+node0 local_ip=192.168.10.7
+node1 local_ip=192.168.10.34
+
+[master]
+node0
+
+[slaves]
+node1
+
+[all:vars]
+subnet_cidr=192.168.10.0/24
+ansible_user=ubuntu

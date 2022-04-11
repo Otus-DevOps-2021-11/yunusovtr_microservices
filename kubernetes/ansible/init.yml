@@ -1,0 +1,167 @@
+---
+- name: Installing Kubernetes
+  hosts: cluster
+  vars:
+    k8s_version: 1.19.16-00
+    docker_compose_version: 1.29.2
+  become: yes
+  tasks:
+
+    # Установка таймзоны
+    - name: Set timezone to MSK
+      timezone:
+        name: Europe/Moscow
+
+    # Установка докер
+    - name: Update apt cache
+      apt: update_cache=yes cache_valid_time=3600
+
+    - name: Upgrade all apt packages
+      apt: upgrade=dist
+
+    - name: Install dependencies
+      apt:
+        name: "{{ packages }}"
+        state: present
+        update_cache: yes
+      vars:
+        packages:
+        - apt-transport-https
+        - ca-certificates
+        - curl
+        - software-properties-common
+        - gnupg-agent
+
+    - name: Add an apt signing key for Docker
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+
+    - name: Add apt repository for stable version
+      apt_repository:
+        repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu xenial stable
+        state: present
+
+    - name: Install Docker
+      apt:
+        name: "{{ packages }}"
+        state: present
+        update_cache: yes
+      vars:
+        packages:
+        - docker-ce
+        - docker-ce-cli
+        - containerd.io
+        - mc
+        - jq
+
+    - name: Add user to docker group
+      user:
+        name: "{{ansible_user}}"
+        group: docker
+
+    - name: install python dependencies
+      apt:
+        update_cache: yes
+        state: latest
+        name: python3-pip
+
+    - name: install 'Docker SDK for Python'
+      pip:
+        name: docker
+
+    - name: Download docker-compose {{ docker_compose_version }}
+      get_url:
+        url : https://github.com/docker/compose/releases/download/{{ docker_compose_version }}/docker-compose-Linux-x86_64
+        dest: ~/docker-compose
+        mode: '+x'
+
+    - name: Check docker-compose exists
+      stat: path=~/docker-compose
+      register: docker_compose
+
+    - name: Move docker-compose to /usr/local/bin/docker-compose
+      command: mv ~/docker-compose /usr/local/bin/docker-compose
+      when: docker_compose.stat.exists
+
+    # Установка кубера
+    - name: Add an apt signing key for k8s
+      apt_key:
+        url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
+        state: present
+
+    - name: Add apt repository for stable version
+      apt_repository:
+        repo: deb http://apt.kubernetes.io/ kubernetes-xenial main
+        state: present
+
+    - name: Install k8s
+      apt:
+        name: "{{ packages }}"
+        state: present
+        update_cache: yes
+      vars:
+        packages:
+          - kubeadm={{k8s_version}}
+          - kubelet={{k8s_version}}
+          - kubectl={{k8s_version}}
+
+    - name: Hold k8s version
+      dpkg_selections:
+        name: "{{item}}"
+        selection: hold
+      with_items:
+        - kubeadm
+        - kubelet
+        - kubectl
+
+- name: Configure k8s cluster
+  hosts: master
+  tasks:
+    - name: Make master node
+      command: kubeadm init --node-name k8s-master --pod-network-cidr={{subnet_cidr}}
+      become: yes
+
+    - name: Create config dir
+      file:
+        path: /home/{{ansible_user}}/.kube
+        state: directory
+
+    - name: Copy config file
+      become: yes
+      copy:
+        remote_src: yes
+        src: /etc/kubernetes/admin.conf
+        dest: /home/{{ansible_user}}/.kube/config
+
+    - name: Change config owner
+      become: yes
+      file:
+        path: /home/{{ansible_user}}/.kube/config
+        owner: "{{ansible_user}}"
+        group: "{{ansible_user}}"
+
+    - name: Install flannel network
+      command: kubectl apply -f https://github.com/coreos/flannel/blob/master/Documentation/kube-flannel.yml?raw=true
+
+    - name: Generate join command
+      command: kubeadm token create --print-join-command
+      register: join_command
+
+    - name: Copy join command to local file
+      local_action: copy content="{{ join_command.stdout_lines[0] }}" dest="./join-command"
+
+    - name: Debug
+      debug: var=join_command
+
+- name: Join slaves to cluster
+  hosts: slaves
+  tags:
+    - continue
+  tasks:
+    - name: Copy the join command to server location
+      copy: src=join-command dest=/tmp/join-command.sh mode=0777
+
+    - name: Join the node to cluster
+      become: yes
+      command: sh /tmp/join-command.sh
