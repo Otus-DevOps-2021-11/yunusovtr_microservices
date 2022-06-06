@@ -58,3 +58,11 @@ none и host и посмотрел, как меняется список namespa
  - Добавил окружение dev и запустил там копии сервисов приложения reddit
  - Создал кластер в облаке Яндекс
  - Сдеплоил в облако приложение, проверил работоспособность
+
+## Домашняя работа №30: Kubernetes. Networks. Storages
+ - Восстановил кластер kubernetes в yandex cloud и развернул reddit приложение
+ - Настроил LoadBalancer по инструкции
+ - Настроил Ingress c https
+ - * Написал манифест для секрета tls, разместил в kubernetes/reddit/tlssecret.yml
+ - Настроил NetworkPolicy
+ - Настроил PersistentVolume, PersistentVolumeClaim, прикрепил к деплою mongo, поэкспериментировал
